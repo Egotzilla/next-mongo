@@ -2,6 +2,9 @@
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+// MUI Data Grid
+import { DataGrid } from "@mui/x-data-grid";
+import { Button, Box } from "@mui/material";
 
 export default function Home() {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -82,8 +85,55 @@ export default function Home() {
     fetchProducts();
   }, []);
 
+  //__________________________________________________
+  // MUI Data Grid
+  const columns = [
+    {
+      field: "name",
+      headerName: "Name",
+      flex: 1,
+      renderCell: (params) => (
+        <Link href={`/product/${params.row._id}`} className="font-bold underline">
+          {params.row.name}
+        </Link>
+      ),
+    },
+    { field: "description", headerName: "Description", flex: 1 },
+    { field: "price", headerName: "Price ($)", type: "number", flex: 0.4 },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      flex: 1,
+      renderCell: (params) => (
+        <Box sx={{ display: "flex", gap: 1 }} style={{ minWidth: 100 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            color="error"
+            onClick={deleteById(params.row._id)}
+          >
+            ❌
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => startEditMode(params.row)}
+          >
+            📝
+          </Button>
+        </Box>
+      ),
+    },
+  ];
+
+  // Map products to DataGrid rows
+  const rows = products.map((p) => ({ ...p, id: p._id }));
+  //__________________________________________________
+
   return (
     <div className="flex flex-row gap-4">
+      {/* ---------- FORM ---------- */}
       <div className="flex-1 w-64 ">
         <form onSubmit={handleSubmit(handleProductSubmit)}>
           <div className="grid grid-cols-2 gap-4 m-4 w-1/2">
@@ -160,7 +210,11 @@ export default function Home() {
           </div>
         </form>
       </div>
-      <div className="border m-4 bg-slate-300 flex-1 w-64">
+
+      {/* ---------- PRODUCT LIST ---------- */}
+
+      {/* Old Product List */}
+      {/* <div className="border m-4 bg-slate-300 flex-1 w-64">
         <h1 className="text-2xl">Products ({products.length})</h1>
         <ul className="list-disc ml-8">
           {
@@ -175,6 +229,22 @@ export default function Home() {
               </li>
             ))}
         </ul>
+      </div> */}
+
+      {/* ---------- MUI DATA GRID ---------- */}
+      <div className="border m-4 bg-slate-300 flex-1 w-64 p-4">
+        <h1 className="text-2xl mb-2">Products ({products.length})</h1>
+        <div style={{ width: "100%", overflowX: "auto" }}>
+          <div style={{ height: 500 }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              pageSize={5}
+              rowsPerPageOptions={[5, 10]}
+              disableSelectionOnClick
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
